@@ -93,7 +93,7 @@ function AirportDigitalTwinPageContent() {
         <main className={activeModule === "OVERVIEW"
           ? "h-full min-w-0 flex-1 overflow-hidden"
           : activeModule === "BMS"
-            ? "h-full min-w-0 flex-1 overflow-hidden px-3 pb-[72px] pt-2"
+            ? `h-full min-w-0 flex-1 overflow-hidden px-3 pt-2 ${activeSection === "bms-hvac" ? "pb-[72px]" : ""}`
             : "airport-scrollbar h-full min-w-0 flex-1 overflow-y-auto px-4 pb-24 pt-4"
         }>
           {activeModule === "OVERVIEW" ? (
