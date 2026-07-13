@@ -26,6 +26,7 @@ export default function AirportModuleContent({ moduleId, sectionId }: { moduleId
   const { localizeModule, tr, language } = useAirportLanguage();
   const module = localizeModule(getAirportModule(moduleId));
   const section = module.sections.find((item) => item.id === sectionId) ?? module.sections[0];
+  const fullHeightBimExplorer = moduleId === "ASSETS_FM" && sectionId === "bim-explorer";
 
   if (moduleId === "BMS") {
     return (
@@ -42,7 +43,7 @@ export default function AirportModuleContent({ moduleId, sectionId }: { moduleId
   }
 
   return (
-    <motion.div key={`${moduleId}-${sectionId}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .22 }} className="space-y-4 pb-28">
+    <motion.div key={`${moduleId}-${sectionId}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .22 }} className={fullHeightBimExplorer ? "flex h-full min-h-0 flex-col gap-4" : "space-y-4 pb-28"}>
       <AirportSectionHeader eyebrow={module.label} title={section.label} description={section.description} actions={<><AirportStatusBadge status="normal" label={tr("Live demo")} /><button onClick={() => toast.success(language === "vi" ? "Đã tạo ảnh chụp dashboard" : "Dashboard snapshot created")} className="airport-button">{tr("Create snapshot")}</button></>} />
       {moduleId === "AIRPORT_OPS" && <AirportOperations sectionId={sectionId} />}
       {moduleId === "PASSENGERS" && <PassengerOperations sectionId={sectionId} />}
@@ -248,7 +249,7 @@ function BimExplorer() {
     ["Documents linked", selectedHasModel ? "14,920" : "—"],
   ];
 
-  return <div className="grid min-h-[700px] grid-cols-[260px_1fr_320px] overflow-hidden rounded-xl border border-white/[.08] bg-[#06111f]/80">
+  return <div className="grid min-h-0 flex-1 grid-cols-[210px_minmax(420px,1fr)_260px] overflow-x-auto overflow-y-hidden rounded-xl border border-white/[.08] bg-[#06111f]/80 2xl:grid-cols-[260px_minmax(0,1fr)_320px]">
     <div className="airport-scrollbar overflow-auto border-r border-white/[.07] p-3">
       <div className="mb-3 text-[9px] uppercase tracking-wider text-slate-500">Schematic model tree</div>
       {tree.map((item,index) => <button key={item} onClick={() => setSelected(item)} className={`mb-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[10px] ${selected === item ? "bg-cyan-400/10 text-cyan-200" : "text-slate-400 hover:bg-white/[.035]"}`}>
@@ -262,16 +263,16 @@ function BimExplorer() {
       </div>
     </div>
 
-    <div className="relative min-w-0 overflow-hidden bg-[radial-gradient(circle_at_center,#0d2940_0,#04111f_68%)]">
-      <div className="absolute inset-x-0 top-0 z-20 border-b border-white/[.06] bg-[#04111f]/82 p-4 backdrop-blur-xl">
-        <div className="grid grid-cols-5 gap-2">{digitalThread.map(([label, detail, state], index) => <button key={label} onClick={() => toast.info(`${label}: ${detail}`)} className="rounded-lg border border-cyan-400/14 bg-cyan-400/[.045] p-3 text-left">
+    <div className="relative flex min-h-0 min-w-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_center,#0d2940_0,#04111f_68%)]">
+      <div className="relative z-20 flex-none border-b border-white/[.06] bg-[#04111f]/82 p-3 backdrop-blur-xl">
+        <div className="airport-scrollbar flex gap-2 overflow-x-auto">{digitalThread.map(([label, detail, state], index) => <button key={label} onClick={() => toast.info(`${label}: ${detail}`)} className="min-w-[150px] flex-1 rounded-lg border border-cyan-400/14 bg-cyan-400/[.045] p-3 text-left">
           <p className="text-[9px] uppercase tracking-[.14em] text-cyan-300">0{index + 1}</p>
           <p className="mt-2 text-[10px] font-semibold text-white">{label}</p>
           <p className="mt-1 text-[9px] text-slate-500">{detail}</p>
           <p className="mt-2 text-[9px] text-emerald-300">{state}</p>
         </button>)}</div>
       </div>
-      <div className="absolute inset-x-0 bottom-0 top-[148px]">
+      <div className="relative min-h-0 flex-1">
         <BimModelViewer modelUrl={modelSources[selected]} label={selected} />
       </div>
     </div>
