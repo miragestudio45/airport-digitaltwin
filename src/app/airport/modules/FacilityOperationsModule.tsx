@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Activity, AlertTriangle, BatteryCharging, Building2, Camera, Car, CheckCircle2,
@@ -187,60 +187,61 @@ function EnergyPowerOperations() {
   </>;
 }
 
-const CCTV_YOUTUBE_IDS = [
-  "xRVtj7_3FxQ", // Madeira Airport
-  "Kt8pH1AuZbU", // London Heathrow Airport
-  "9iJl77DFH4U", // John F. Kennedy International Airport
-  "_-Qg5jD-PfA", // Las Vegas Airport
-  "n4I0d44oBEs", // Los Angeles International Airport
-  "i9ym2xZSQWA", // Lanzarote Airport
-  "u62ap1znybk", // Guarulhos International Airport
-  "OUBslrCqREs", // LaGuardia Airport
-  "2PIdi3Xa7TY", // Tokyo Haneda Airport
-  "8exPwQdJY6g", // London City Airport
-  "2IQmpCXbOmM", // Sint Maarten Airport
-  "_GUsXnlVJmo", // Miami International Airport
-] as const;
+const CCTV_POSTER_OVERRIDES: Record<string, string> = {
+  "27778672": "https://images.pexels.com/videos/27778672/airport-terminal-barrier-passengers-queue-27778672.jpeg?auto=compress&cs=tinysrgb&w=640",
+  "34969100": "https://images.pexels.com/videos/34969100/airport-4k-34969100.jpeg?auto=compress&cs=tinysrgb&w=640",
+  "28894404": "https://images.pexels.com/videos/28894404/airport-flight-journey-melbourne-melbourne-airport-28894404.jpeg?auto=compress&cs=tinysrgb&w=640",
+  "29305388": "https://images.pexels.com/videos/29305388/adventure-africa-aircraft-airplane-29305388.jpeg?auto=compress&cs=tinysrgb&w=640",
+  "28894958": "https://images.pexels.com/videos/28894958/airport-bangkok-bangkok-airport-food-28894958.jpeg?auto=compress&cs=tinysrgb&w=640",
+};
 
-function CctvYoutubeFeed({ youtubeId, playing = false, className = "" }: { youtubeId: string; playing?: boolean; className?: string }) {
-  if (!playing) {
-    return (
-      <img
-        src={`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`}
-        alt="Airport CCTV feed"
-        loading="lazy"
-        className={className}
-      />
-    );
-  }
+const CCTV_STOCK_MEDIA = [
+  { sourceId: "37130592", label: "Security patrol", mediaUrl: "https://videos.pexels.com/video-files/37130592/15730105_3840_2160_24fps.mp4" },
+  { sourceId: "32654547", label: "Security checkpoint", mediaUrl: "https://videos.pexels.com/video-files/32654547/13922797_3840_2160_24fps.mp4" },
+  { sourceId: "27778672", label: "Checkpoint queue", mediaUrl: "https://videos.pexels.com/video-files/27778672/12222638_3840_2160_25fps.mp4" },
+  { sourceId: "13244546", label: "Terminal concourse", mediaUrl: "https://videos.pexels.com/video-files/13244546/13244546-hd_1920_1080_24fps.mp4" },
+  { sourceId: "20606517", label: "Passenger flow", mediaUrl: "https://videos.pexels.com/video-files/20606517/20606517-hd_1920_1080_24fps.mp4" },
+  { sourceId: "37130583", label: "Terminal overview", mediaUrl: "https://videos.pexels.com/video-files/37130583/15730126_3840_2160_24fps.mp4" },
+  { sourceId: "33182811", label: "Check-in hall", mediaUrl: "https://videos.pexels.com/video-files/33182811/14141601_2160_3840_30fps.mp4" },
+  { sourceId: "34969100", label: "Departure hall", mediaUrl: "https://videos.pexels.com/video-files/34969100/14813122_2160_3840_30fps.mp4" },
+  { sourceId: "28894404", label: "Terminal movement", mediaUrl: "https://videos.pexels.com/video-files/28894404/12507308_3840_2160_60fps.mp4" },
+  { sourceId: "29305388", label: "International terminal", mediaUrl: "https://videos.pexels.com/video-files/29305388/12637285_3840_2160_24fps.mp4" },
+  { sourceId: "37130608", label: "Baggage claim", mediaUrl: "https://videos.pexels.com/video-files/37130608/15730181_3840_2160_24fps.mp4" },
+  { sourceId: "28894958", label: "Customs and baggage", mediaUrl: "https://videos.pexels.com/video-files/28894958/12507465_3840_2160_60fps.mp4" },
+].map((item) => ({
+  ...item,
+  posterUrl: CCTV_POSTER_OVERRIDES[item.sourceId] ?? `https://images.pexels.com/videos/${item.sourceId}/pexels-photo-${item.sourceId}.jpeg?auto=compress&cs=tinysrgb&w=640`,
+}));
 
-  return (
-    <iframe
-      src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=1&controls=1&rel=0`}
-      title="Airport CCTV YouTube feed"
-      allow="autoplay; encrypted-media; picture-in-picture"
-      allowFullScreen
-      className={className}
-    />
-  );
+function CctvStockVideo({ src, playing, className = "" }: { src: string; playing: boolean; className?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (playing) void video.play().catch(() => undefined);
+    else video.pause();
+  }, [playing, src]);
+
+  return <video ref={videoRef} src={src} muted loop playsInline preload="metadata" className={className} />;
 }
 
 function CctvVmsOperations() {
   const { language }=useAirportLanguage();
   const vi=language==="vi";
-  const cameras = CCTV_YOUTUBE_IDS.map((youtubeId,i)=>({id:`CAM-${String(i+1).padStart(3,"0")}`,zone:["Terminal","Airside","Perimeter","Cargo"][i%4],status:[3,9].includes(i)?"Degraded":"Live",event:[2,7].includes(i)?"Analytics event":"Normal",resolution:i%3===0?"4K":"1080p",retention:"30 days",youtubeId}));
+  const cameras = CCTV_STOCK_MEDIA.map((media,i)=>({id:`CAM-${String(i+1).padStart(3,"0")}`,zone:["Terminal","Airside","Perimeter","Cargo"][i%4],status:[3,9].includes(i)?"Degraded":"Live",event:[2,7].includes(i)?"Analytics event":"Normal",resolution:i%3===0?"4K":"1080p",retention:"30 days",...media}));
   const [selected,setSelected]=useState<(typeof cameras)[number]|null>(null);
   const [playing,setPlaying]=useState(true);
   return <>
     <div className="grid grid-cols-3 gap-2 xl:grid-cols-6">{[[vi?"Camera trực tuyến":"Cameras online","1,272 / 1,284","99.1%"],[vi?"Luồng AI":"AI analytics streams","428","Live"],[vi?"Sự kiện hôm nay":"Events today","2,846","-6%"],[vi?"Camera suy giảm":"Degraded cameras","12","Maintenance"],[vi?"Lưu trữ":"Retention","30 days","Healthy"],[vi?"Độ phủ":"Coverage confidence","98.4%","Airport-wide"]].map(([a,b,c],i)=><AirportMetricCard key={a} label={a} value={b} trend={c} compact tone={i===3?"amber":"cyan"}/>)}</div>
     <div className="grid gap-4 xl:grid-cols-[1.35fr_.65fr]">
-      <AirportPanel title={vi?"Video wall VMS":"VMS video wall"}><div className="grid grid-cols-4 gap-2 p-3">{cameras.map((cam)=><button key={cam.id} onClick={()=>{setSelected(cam);setPlaying(true);}} className="relative aspect-video overflow-hidden rounded-lg border border-white/[.07] bg-[#06111f]"><CctvYoutubeFeed youtubeId={cam.youtubeId} className="pointer-events-none absolute inset-0 h-full w-full object-cover"/><div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#04111f]/75 via-transparent to-black/10"/><div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-[#04111f]/75 px-2 py-1.5"><span className="text-[8px] text-white">{cam.id}</span><span className={`h-1.5 w-1.5 rounded-full ${cam.status==="Live"?"bg-emerald-300":"bg-amber-300"}`}/></div>{cam.event!=="Normal"&&<span className="absolute right-2 top-2 rounded bg-amber-400/15 px-1.5 py-1 text-[7px] text-amber-200">AI EVENT</span>}</button>)}</div></AirportPanel>
+      <AirportPanel title={vi?"Video wall VMS":"VMS video wall"}><div className="grid grid-cols-4 gap-2 p-3">{cameras.map((cam)=><button key={cam.id} onClick={()=>{setSelected(cam);setPlaying(true);}} className="relative aspect-video overflow-hidden rounded-lg border border-white/[.07] bg-[#06111f]"><img src={cam.posterUrl} alt={`${cam.id} · ${cam.label}`} loading="lazy" className="pointer-events-none absolute inset-0 h-full w-full object-cover grayscale contrast-125 saturate-50"/><div className="pointer-events-none absolute inset-0 opacity-20" style={{backgroundImage:"repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(34,211,238,.22) 4px)"}}/><div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#04111f]/85 via-transparent to-black/25"/><span className="absolute left-2 top-2 rounded bg-black/55 px-1.5 py-1 font-mono text-[7px] text-cyan-100/80">{cam.label}</span><div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-[#04111f]/75 px-2 py-1.5"><span className="font-mono text-[8px] text-white">{cam.id}</span><span className={`h-1.5 w-1.5 rounded-full ${cam.status==="Live"?"bg-emerald-300":"bg-amber-300"}`}/></div>{cam.event!=="Normal"&&<span className="absolute right-2 top-2 rounded bg-amber-400/15 px-1.5 py-1 text-[7px] text-amber-200">AI EVENT</span>}</button>)}</div></AirportPanel>
       <AirportPanel title={vi?"Sự kiện video ưu tiên":"Priority video events"}><div className="space-y-2 p-3">{[["11:31","Perimeter P-07","Intrusion correlation","97%"],["11:18","Security B","Crowd density","86%"],["10:56","Baggage Hall","Unattended object","Review"],["10:42","Apron North","Vehicle route deviation","Closed"],["10:24","Cargo Gate 04","Tailgating","Investigating"]].map(([time,zone,event,confidence],i)=><button key={`${time}-${zone}`} className="w-full rounded-lg border border-white/[.06] bg-white/[.025] p-3 text-left" onClick={()=>setSelected(cameras[i])}><div className="flex justify-between"><span className="font-mono text-[9px] text-cyan-300">{time}</span><AirportStatusBadge status={i===0?"critical":i<3?"warning":"info"}/></div><p className="mt-2 text-[10px] font-semibold text-white">{zone}</p><p className="mt-1 text-[9px] text-slate-500">{event} · {confidence}</p></button>)}</div></AirportPanel>
     </div>
     <EboOperationalModal open={Boolean(selected)} onClose={()=>setSelected(null)} eyebrow="VMS integrated operational view" title={`${selected?.id ?? "Camera"} · ${selected?.zone ?? ""}`} subtitle="Video remains governed by the source VMS; EBO presents linked status, events and workflow." status={selected?.status==="Degraded"?"warning":"normal"} statusLabel={selected?.status ?? "Live"} fields={[
       {label:"Camera ID",value:selected?.id ?? "—"},{label:"Zone",value:selected?.zone ?? "—"},{label:"Stream",value:selected?.resolution ?? "—",tone:"normal"},{label:"Analytics",value:selected?.event ?? "—",tone:selected?.event!=="Normal"?"warning":"normal"},{label:"Retention",value:selected?.retention ?? "—"},{label:"Source platform",value:"Airport VMS"},
     ]} footer={<><button onClick={()=>setPlaying(v=>!v)} className="airport-button">{playing?<Pause size={13}/>:<Play size={13}/>} {playing?"Pause":"Play"}</button><button onClick={()=>toast.success("Snapshot saved to demo incident evidence")} className="airport-button"><Camera size={13}/>Snapshot</button><button onClick={()=>toast.success("Video event assigned to security workflow")} className="airport-button !border-cyan-400/20 !bg-cyan-400/[.06] !text-cyan-200">Create incident</button></>}>
-      <div className="grid gap-4 xl:grid-cols-[1.3fr_.7fr]"><div className="relative min-h-[520px] overflow-hidden rounded-xl border border-cyan-400/18 bg-[#06111f]"><CctvYoutubeFeed youtubeId={selected?.youtubeId ?? CCTV_YOUTUBE_IDS[0]} playing={playing} className="absolute inset-0 h-full w-full border-0 object-cover"/><div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/20"/><div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded-lg bg-black/45 px-3 py-2 text-[9px] text-white"><span className={`h-2 w-2 rounded-full ${playing?"bg-red-400":"bg-slate-500"}`}/>{playing?"LIVE":"PAUSED"} · {selected?.id}</div><div className="pointer-events-none absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-xl border border-white/[.08] bg-black/45 px-3 py-2"><span className="text-[9px] text-slate-300">12:41:28 · UTC+7</span><span className="text-[9px] text-cyan-200">AI analytics overlay active</span></div></div><AirportPanel title="PTZ, analytics and event history"><div className="grid grid-cols-3 gap-2 p-3">{["Pan left","Tilt up","Zoom +","Home","Auto track","Privacy mask"].map(label=><button key={label} onClick={()=>toast.success(`${label} · demo command audited`)} className="rounded-lg border border-white/[.07] bg-white/[.03] p-3 text-[9px] text-slate-300 hover:border-cyan-400/20 hover:text-cyan-200">{label}</button>)}</div><div className="space-y-2 border-t border-white/[.06] p-3">{[["12:39:18","Motion analytics","Normal"],["12:31:04","Object classification","Person"],["12:16:42","Stream health","Recovered"],["11:58:11","Operator view","Opened"]].map(([time,event,state])=><div key={time} className="flex justify-between rounded-lg bg-white/[.03] p-3 text-[9px]"><span className="font-mono text-cyan-300">{time}</span><span className="text-slate-300">{event}</span><span className="text-emerald-300">{state}</span></div>)}</div></AirportPanel></div>
+      <div className="grid gap-4 xl:grid-cols-[1.3fr_.7fr]"><div className="relative min-h-[520px] overflow-hidden rounded-xl border border-cyan-400/18 bg-[#06111f]"><CctvStockVideo src={selected?.mediaUrl ?? CCTV_STOCK_MEDIA[0].mediaUrl} playing={playing} className="absolute inset-0 h-full w-full object-cover grayscale-[20%] contrast-125 saturate-75"/><div className="pointer-events-none absolute inset-0 opacity-15" style={{backgroundImage:"repeating-linear-gradient(0deg,transparent 0,transparent 4px,rgba(34,211,238,.2) 5px)"}}/><div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/20"/><div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded-lg bg-black/55 px-3 py-2 font-mono text-[9px] text-white"><span className={`h-2 w-2 rounded-full ${playing?"bg-red-400":"bg-slate-500"}`}/>{playing?"REC":"PAUSED"} · {selected?.id} · {selected?.label}</div><div className="pointer-events-none absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-xl border border-white/[.08] bg-black/50 px-3 py-2"><span className="font-mono text-[9px] text-slate-300">12:41:28 · UTC+7</span><span className="text-[9px] text-cyan-200">AI analytics overlay active</span></div></div><AirportPanel title="PTZ, analytics and event history"><div className="grid grid-cols-3 gap-2 p-3">{["Pan left","Tilt up","Zoom +","Home","Auto track","Privacy mask"].map(label=><button key={label} onClick={()=>toast.success(`${label} · demo command audited`)} className="rounded-lg border border-white/[.07] bg-white/[.03] p-3 text-[9px] text-slate-300 hover:border-cyan-400/20 hover:text-cyan-200">{label}</button>)}</div><div className="space-y-2 border-t border-white/[.06] p-3">{[["12:39:18","Motion analytics","Normal"],["12:31:04","Object classification","Person"],["12:16:42","Stream health","Recovered"],["11:58:11","Operator view","Opened"]].map(([time,event,state])=><div key={time} className="flex justify-between rounded-lg bg-white/[.03] p-3 text-[9px]"><span className="font-mono text-cyan-300">{time}</span><span className="text-slate-300">{event}</span><span className="text-emerald-300">{state}</span></div>)}</div></AirportPanel></div>
     </EboOperationalModal>
   </>;
 }
