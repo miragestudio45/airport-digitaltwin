@@ -514,62 +514,61 @@ export const BMS3DModelViewer: React.FC<BMS3DModelViewerProps> = ({
         </div>
       )}
 
-      {/* Floating animation toolbar */}
-      {loadState === "loaded" && (
-        <div className="absolute bottom-3 left-3 right-3 z-10">
-          <div className="flex items-center gap-2 rounded-xl px-3 py-2"
-               style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)" }}>
+      {/* Compact floating animation controls */}
+      {loadState === "loaded" && hasAnyAnimation && (
+        <div className="absolute bottom-3 left-3 z-10 max-w-[calc(100%-4rem)]">
+          <div
+            className="airport-scrollbar flex max-w-full items-center gap-1 overflow-x-auto rounded-lg p-1 shadow-xl"
+            style={{ background: "rgba(0,0,0,0.62)", backdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.1)" }}
+          >
+            {clips.map((c) => (
+              <button
+                key={c.clipName}
+                onClick={() => toggleClip(c.clipName)}
+                title={`${c.playing ? "Pause" : "Play"} ${c.label}`}
+                className="flex flex-shrink-0 items-center gap-1.5 rounded-md border px-2 py-1 text-[9px] font-medium transition-all"
+                style={c.playing
+                  ? { background: `${accentColor}18`, borderColor: `${accentColor}45`, color: accentColor }
+                  : { background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)", color: "#94a3b8" }}
+              >
+                {c.playing ? <Pause size={9} /> : <Play size={9} />}
+                <span className="max-w-28 truncate">{c.label}</span>
+              </button>
+            ))}
 
-            {/* Clip buttons */}
-            <div className="flex items-center gap-1.5 flex-1 flex-wrap min-w-0">
-              {clips.map((c) => (
-                <button key={c.clipName} onClick={() => toggleClip(c.clipName)} title={c.clipName}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all border"
-                  style={c.playing
-                    ? { background: `${accentColor}18`, borderColor: `${accentColor}45`, color: accentColor }
-                    : { background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)", color: "#94a3b8" }}>
-                  {c.playing ? <Pause size={9} /> : <Play size={9} />}
-                  {c.label}
-                </button>
-              ))}
+            {texAnimCount > 0 && (
+              <span
+                title="Material motion active"
+                className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-md border"
+                style={{ background: `${accentColor}12`, borderColor: `${accentColor}35`, color: accentColor }}
+              >
+                <Waves size={10} />
+              </span>
+            )}
 
-              {/* Texture animation indicator */}
-              {texAnimCount > 0 && clips.length === 0 && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] border"
-                     style={{ background: `${accentColor}12`, borderColor: `${accentColor}35`, color: accentColor }}>
-                  <Waves size={9} />
-                  Material motion active
-                </div>
-              )}
-              {texAnimCount > 0 && clips.length > 0 && (
-                <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] border"
-                     style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)", color: "#64748b" }}>
-                  <Waves size={8} />+tex
-                </div>
-              )}
-
-              {/* Nothing at all */}
-              {!hasAnyAnimation && (
-                <span className="text-[10px] text-slate-600 italic">No animation data</span>
-              )}
-
-              {clips.length > 1 && (
-                <button onClick={stopAll}
-                  className="px-2 py-1 rounded-lg text-[10px] border transition-all"
-                  style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)", color: "#64748b" }}>
-                  Stop All
-                </button>
-              )}
-            </div>
-
-            {/* Reset camera */}
-            <button onClick={resetCamera} title="Reset camera"
-              className="flex-shrink-0 p-1.5 rounded-lg border transition-all"
-              style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)", color: "#94a3b8" }}>
-              <RotateCcw size={12} />
-            </button>
+            {clips.length > 1 && (
+              <button
+                onClick={stopAll}
+                title="Stop all animations"
+                className="flex-shrink-0 rounded-md border px-2 py-1 text-[9px] transition-all"
+                style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)", color: "#64748b" }}
+              >
+                Stop all
+              </button>
+            )}
           </div>
         </div>
+      )}
+
+      {loadState === "loaded" && (
+        <button
+          onClick={resetCamera}
+          title="Reset camera"
+          className="absolute bottom-3 right-3 z-10 grid h-7 w-7 place-items-center rounded-lg border shadow-xl transition-all hover:text-white"
+          style={{ background: "rgba(0,0,0,0.62)", backdropFilter: "blur(16px)", borderColor: "rgba(255,255,255,0.12)", color: "#94a3b8" }}
+        >
+          <RotateCcw size={12} />
+        </button>
       )}
     </div>
   );
