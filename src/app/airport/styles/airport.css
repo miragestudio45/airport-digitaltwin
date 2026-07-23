@@ -4,6 +4,49 @@
     radial-gradient(circle at 50% -20%, rgba(24, 113, 153, .16), transparent 42%),
     linear-gradient(180deg, #061423 0%, #030b15 100%);
   color: #dbeafe;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+ * Readability scale for the airport dashboard.
+ * Most screens were designed around 7–11px labels, which become difficult to
+ * read on large displays. Keep the existing visual hierarchy while raising
+ * the minimum readable size across every module.
+ */
+.airport-platform .text-\[7px\]  { font-size: 9px;  line-height: 1.4; }
+.airport-platform .text-\[8px\]  { font-size: 10px; line-height: 1.4; }
+.airport-platform .text-\[9px\]  { font-size: 11px; line-height: 1.45; }
+.airport-platform .text-\[10px\] { font-size: 12px; line-height: 1.45; }
+.airport-platform .text-\[11px\] { font-size: 13px; line-height: 1.45; }
+.airport-platform .text-\[12px\] { font-size: 14px; line-height: 1.45; }
+.airport-platform .text-xs       { font-size: 13px; line-height: 1.5; }
+.airport-platform .text-sm       { font-size: 15px; line-height: 1.5; }
+
+/* Increase low-contrast copy without flattening headings and primary data. */
+.airport-platform .text-slate-600 { color: #8495ad; }
+.airport-platform .text-slate-500 { color: #9eacc0; }
+.airport-platform .text-slate-400 { color: #bdc9d8; }
+.airport-platform .text-slate-300 { color: #d5dee9; }
+.airport-platform .text-slate-200 { color: #e4ebf3; }
+
+.airport-platform input::placeholder,
+.airport-platform textarea::placeholder {
+  color: #8495ad;
+  opacity: 1;
+}
+
+.airport-platform button:focus-visible,
+.airport-platform input:focus-visible,
+.airport-platform select:focus-visible,
+.airport-platform textarea:focus-visible {
+  outline: 2px solid rgba(103, 232, 249, .72);
+  outline-offset: 2px;
+}
+
+.airport-platform .airport-bottom-navigation button:focus-visible {
+  outline-offset: -2px;
 }
 
 .airport-platform::before {
@@ -34,7 +77,7 @@
   gap: .4rem;
   border-radius: .5rem;
   padding: .48rem .7rem;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -60,7 +103,7 @@
 .airport-select {
   border-radius: .5rem;
   padding: .47rem .65rem;
-  font-size: 9px;
+  font-size: 11px;
   outline: none;
 }
 
@@ -79,11 +122,104 @@
   .airport-platform .airport-dense-hide { display: none; }
 }
 
-/* Keep dense operational tables balanced across all airport modules. */
+/*
+ * Operational tables use one readable, consistent header treatment whether
+ * they are rendered by AirportDataTable or directly inside a module.
+ */
+.airport-platform table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.airport-platform table thead {
+  background: linear-gradient(180deg, #0c1d32 0%, #09182a 100%);
+  color: #c5d1df;
+}
+
 .airport-platform table thead th,
 .airport-platform table thead button {
-  font-size: 8px !important;
-  line-height: 1.1 !important;
-  letter-spacing: .07em !important;
-  font-weight: 600 !important;
+  color: #cbd7e5 !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  letter-spacing: .025em !important;
+  font-weight: 650 !important;
+  text-transform: none !important;
+}
+
+.airport-platform table thead th {
+  padding: 10px 12px !important;
+  border-bottom: 1px solid rgba(103, 232, 249, .12);
+  white-space: nowrap;
+}
+
+.airport-platform table thead button {
+  min-height: 16px;
+}
+
+.airport-platform table tbody td {
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.airport-platform table tbody tr {
+  transition: background-color .16s ease;
+}
+
+.airport-platform .airport-table-toolbar {
+  min-height: 48px;
+  padding-inline: 14px;
+}
+
+/* Keep metric cards readable instead of forcing six narrow cards too early. */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  .airport-platform .grid.xl\:grid-cols-6 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Bottom navigation remains a single compact row. At narrower desktop sizes,
+ * inactive labels collapse to icons while the active module keeps its label.
+ */
+.airport-platform .airport-bottom-navigation {
+  box-sizing: border-box;
+  max-width: calc(100vw - 24px);
+  min-height: 48px;
+  overflow: hidden;
+}
+
+.airport-platform .airport-bottom-navigation__item,
+.airport-platform .airport-bottom-navigation__launcher {
+  font-size: 12px;
+  line-height: 1;
+}
+
+@media (max-width: 1180px) {
+  .airport-platform .airport-bottom-navigation__item {
+    min-width: 40px;
+    width: 40px;
+    padding-inline: 0;
+  }
+
+  .airport-platform .airport-bottom-navigation__item:not([aria-current="page"]) .airport-bottom-navigation__label {
+    display: none;
+  }
+
+  .airport-platform .airport-bottom-navigation__item[aria-current="page"] {
+    width: auto;
+    min-width: 40px;
+    padding-inline: 12px;
+  }
+
+  .airport-platform .airport-bottom-navigation__launcher {
+    width: 40px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+
+  .airport-platform .airport-bottom-navigation__launcher-label,
+  .airport-platform .airport-bottom-navigation__divider {
+    display: none;
+  }
 }
